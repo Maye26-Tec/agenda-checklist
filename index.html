@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agenda Checklist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="grid"></div>
+    </div>
+
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Personal planner</p>
+        <h1>Agenda Checklist</h1>
+        <p class="subtitle">
+          Add tasks, track progress, and keep momentum with a colorful checklist.
+        </p>
+      </div>
+      <div class="progress-card">
+        <div class="progress-top">
+          <span>Progress</span>
+          <strong id="progressText">0%</strong>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill"></div>
+        </div>
+        <div class="progress-meta">
+          <span id="progressMeta">0 of 0 done</span>
+          <span id="streakMeta">Streak: 0</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="card create">
+        <h2>Create a task</h2>
+        <form id="taskForm">
+          <div class="row">
+            <label>
+              Title
+              <input id="titleInput" type="text" placeholder="Finish report" required />
+            </label>
+            <label>
+              Priority
+              <select id="priorityInput">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Notes
+            <textarea id="notesInput" placeholder="Optional details"></textarea>
+          </label>
+          <div class="row">
+            <label>
+              Due date
+              <input id="dueDateInput" type="date" />
+            </label>
+          </div>
+          <div class="row">
+            <label>
+              Tags
+              <input id="tagsInput" type="text" placeholder="work, home" />
+            </label>
+          </div>
+          <button type="submit" class="primary">Add task</button>
+        </form>
+      </section>
+
+      <section class="card controls">
+        <div class="filters">
+          <div>
+            <label>Status</label>
+            <div class="pill-group" id="statusFilters">
+              <button type="button" data-status="all" class="pill active">All</button>
+              <button type="button" data-status="active" class="pill">Active</button>
+              <button type="button" data-status="completed" class="pill">Completed</button>
+            </div>
+          </div>
+          <div>
+            <label>Priority</label>
+            <div class="pill-group" id="priorityFilters">
+              <button type="button" data-priority="all" class="pill active">All</button>
+              <button type="button" data-priority="low" class="pill">Low</button>
+              <button type="button" data-priority="medium" class="pill">Medium</button>
+              <button type="button" data-priority="high" class="pill">High</button>
+            </div>
+          </div>
+          <div>
+            <label>Search</label>
+            <input id="searchInput" type="search" placeholder="Find tasks" />
+          </div>
+          <div>
+            <label>Sort by</label>
+            <select id="sortInput">
+              <option value="created">Created date</option>
+              <option value="due">Due date</option>
+              <option value="priority">Priority</option>
+            </select>
+          </div>
+          <div>
+            <label>Reminder time</label>
+            <input id="reminderTimeInput" type="time" />
+          </div>
+        </div>
+      </section>
+
+      <section class="card calendar">
+        <div class="calendar-header">
+          <h2>Calendar</h2>
+          <div class="calendar-nav">
+            <button id="calPrev" type="button" class="ghost" aria-label="Previous month">
+              Prev
+            </button>
+            <div id="calLabel" class="calendar-label"></div>
+            <button id="calNext" type="button" class="ghost" aria-label="Next month">
+              Next
+            </button>
+          </div>
+        </div>
+        <div class="calendar-weekdays">
+          <span>Sun</span>
+          <span>Mon</span>
+          <span>Tue</span>
+          <span>Wed</span>
+          <span>Thu</span>
+          <span>Fri</span>
+          <span>Sat</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div class="calendar-day-detail">
+          <h3 id="calendarDayTitle">Tasks for</h3>
+          <ul id="calendarDayList" class="calendar-day-list"></ul>
+          <p id="calendarDayEmpty" class="empty">No tasks for this day.</p>
+        </div>
+      </section>
+
+      <section class="card list">
+        <div class="list-header">
+          <h2>Your tasks</h2>
+          <div class="list-actions">
+            <button id="clearCompleted" type="button" class="ghost">Clear completed</button>
+            <button id="clearAll" type="button" class="ghost danger">Clear all</button>
+          </div>
+        </div>
+        <ul id="taskList" class="task-list"></ul>
+        <p id="emptyState" class="empty">No tasks yet. Add one to start.</p>
+      </section>
+    </main>
+
+    <template id="taskTemplate">
+      <li class="task">
+        <div class="task-main">
+          <button class="check" type="button" aria-label="Toggle completion"></button>
+          <div class="task-info">
+            <div class="task-title"></div>
+            <div class="task-meta"></div>
+            <div class="task-tags"></div>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button type="button" class="ghost edit">Edit</button>
+          <button type="button" class="ghost danger delete">Delete</button>
+        </div>
+        <form class="edit-form">
+          <input class="edit-title" type="text" required />
+          <textarea class="edit-notes"></textarea>
+          <div class="row">
+            <input class="edit-due-date" type="date" />
+            <select class="edit-priority">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+            <input class="edit-tags" type="text" placeholder="comma tags" />
+          </div>
+          <div class="edit-actions">
+            <button type="submit" class="primary small">Save</button>
+            <button type="button" class="ghost small cancel">Cancel</button>
+          </div>
+        </form>
+      </li>
+    </template>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
