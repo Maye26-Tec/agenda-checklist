@@ -1,4 +1,35 @@
-const storageKey = "agendaChecklist:v1";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  serverTimestamp,
+  writeBatch,
+} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyArauYviigQgZuFeAJ6Z8CICkARxLV1Bd8",
+  authDomain: "agenda-checklist-c18bc.firebaseapp.com",
+  projectId: "agenda-checklist-c18bc",
+  storageBucket: "agenda-checklist-c18bc.firebasestorage.app",
+  messagingSenderId: "66218788574",
+  appId: "1:66218788574:web:160eb241654247057a644f",
+  measurementId: "G-EZHZPX33WM",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const tasksRef = collection(db, "tasks");
+const tasksQuery = query(tasksRef, orderBy("createdAt", "desc"));
+
 const settingsKey = "agendaChecklist:settings:v1";
 
 const form = document.getElementById("taskForm");
@@ -33,7 +64,7 @@ const calendarDayTitle = document.getElementById("calendarDayTitle");
 const calendarDayList = document.getElementById("calendarDayList");
 const calendarDayEmpty = document.getElementById("calendarDayEmpty");
 
-let tasks = loadTasks();
+let tasks = [];
 let settings = loadSettings();
 let reminderTimer = null;
 let calendarState = buildInitialCalendarState();
@@ -44,7 +75,17 @@ let filters = {
   sort: "created",
 };
 
-init();
+start();
+
+async function start() {
+  try {
+    await signInAnonymously(auth);
+  } catch (error) {
+    console.error("Anonymous sign-in failed", error);
+  }
+  init();
+  subscribeTasks();
+}
 
 function init() {
   form.addEventListener("submit", handleCreateTask);
@@ -64,28 +105,32 @@ function init() {
   scheduleDailyReminder();
 }
 
-function handleCreateTask(event) {
+function subscribeTasks() {
+  onSnapshot(tasksQuery, (snapshot) => {
+    tasks = snapshot.docs.map((docSnap) => mapTask(docSnap));
+    render();
+  });
+}
+
+async function handleCreateTask(event) {
   event.preventDefault();
 
   const title = titleInput.value.trim();
   if (!title) return;
 
   const task = {
-    id: crypto.randomUUID(),
     title,
     notes: notesInput.value.trim(),
     dueDate: dueDateInput.value || "",
     priority: priorityInput.value,
     tags: parseTags(tagsInput.value),
     completed: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   };
 
-  tasks.unshift(task);
-  saveTasks();
+  await addDoc(tasksRef, task);
   resetForm();
-  render();
 }
 
 function handleStatusFilter(event) {
@@ -186,13 +231,13 @@ function applyFilters(source) {
   return result;
 }
 
-function toggleComplete(id) {
+async function toggleComplete(id) {
   const task = tasks.find((item) => item.id === id);
   if (!task) return;
-  task.completed = !task.completed;
-  task.updatedAt = new Date().toISOString();
-  saveTasks();
-  render();
+  await updateDoc(doc(db, "tasks", id), {
+    completed: !task.completed,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 function toggleEdit(item, task) {
@@ -214,21 +259,20 @@ function toggleEdit(item, task) {
 
 function wireEditForm(editForm, item, task) {
   const cancelBtn = editForm.querySelector(".cancel");
-  editForm.addEventListener("submit", (event) => {
+  editForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const titleValue = editForm.querySelector(".edit-title").value.trim();
     if (!titleValue) return;
 
-    task.title = titleValue;
-    task.notes = editForm.querySelector(".edit-notes").value.trim();
-    task.dueDate = editForm.querySelector(".edit-due-date").value || "";
-    task.priority = editForm.querySelector(".edit-priority").value;
-    task.tags = parseTags(editForm.querySelector(".edit-tags").value);
-    task.updatedAt = new Date().toISOString();
-
-    saveTasks();
-    render();
+    await updateDoc(doc(db, "tasks", task.id), {
+      title: titleValue,
+      notes: editForm.querySelector(".edit-notes").value.trim(),
+      dueDate: editForm.querySelector(".edit-due-date").value || "",
+      priority: editForm.querySelector(".edit-priority").value,
+      tags: parseTags(editForm.querySelector(".edit-tags").value),
+      updatedAt: serverTimestamp(),
+    });
   });
 
   cancelBtn.addEventListener("click", () => {
@@ -236,23 +280,23 @@ function wireEditForm(editForm, item, task) {
   });
 }
 
-function deleteTask(id) {
-  tasks = tasks.filter((task) => task.id !== id);
-  saveTasks();
-  render();
+async function deleteTask(id) {
+  await deleteDoc(doc(db, "tasks", id));
 }
 
-function clearCompleted() {
-  tasks = tasks.filter((task) => !task.completed);
-  saveTasks();
-  render();
+async function clearCompleted() {
+  const batch = writeBatch(db);
+  tasks
+    .filter((task) => task.completed)
+    .forEach((task) => batch.delete(doc(db, "tasks", task.id)));
+  await batch.commit();
 }
 
-function clearAll() {
+async function clearAll() {
   if (!confirm("Delete all tasks?")) return;
-  tasks = [];
-  saveTasks();
-  render();
+  const batch = writeBatch(db);
+  tasks.forEach((task) => batch.delete(doc(db, "tasks", task.id)));
+  await batch.commit();
 }
 
 function updateProgress() {
@@ -461,21 +505,6 @@ function toDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
-function saveTasks() {
-  localStorage.setItem(storageKey, JSON.stringify(tasks));
-}
-
-function loadTasks() {
-  const raw = localStorage.getItem(storageKey);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
 function loadSettings() {
   const raw = localStorage.getItem(settingsKey);
   if (!raw) {
@@ -569,6 +598,29 @@ function showNotification(title, body) {
       }
     });
   }
+}
+
+function mapTask(docSnap) {
+  const data = docSnap.data() || {};
+  return {
+    id: docSnap.id,
+    title: data.title || "",
+    notes: data.notes || "",
+    dueDate: data.dueDate || "",
+    priority: data.priority || "medium",
+    tags: Array.isArray(data.tags) ? data.tags : [],
+    completed: Boolean(data.completed),
+    createdAt: toIsoString(data.createdAt) || new Date(0).toISOString(),
+    updatedAt: toIsoString(data.updatedAt) || new Date().toISOString(),
+  };
+}
+
+function toIsoString(value) {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (value.toDate) return value.toDate().toISOString();
+  if (value instanceof Date) return value.toISOString();
+  return "";
 }
 
 function capitalize(text) {
