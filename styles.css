@@ -355,6 +355,66 @@ textarea {
   border-color: transparent;
 }
 
+.project-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: grid;
+  gap: 16px;
+}
+
+.project {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  background: white;
+  display: grid;
+  gap: 12px;
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.project-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.project-notes {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.project-task-form {
+  display: grid;
+  gap: 12px;
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
+}
+
+.project-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.project-empty {
+  margin: 0;
+}
+
 .task-list {
   list-style: none;
   padding: 0;
@@ -424,20 +484,6 @@ textarea {
   margin-top: 4px;
 }
 
-.task-tags {
-  margin-top: 6px;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.tag {
-  background: #f1f3ff;
-  color: #39406b;
-  border-radius: 999px;
-  padding: 3px 8px;
-  font-size: 12px;
-}
 
 .task-actions {
   display: flex;

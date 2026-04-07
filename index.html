@@ -24,7 +24,7 @@
         <p class="eyebrow">Personal planner</p>
         <h1>Agenda Checklist</h1>
         <p class="subtitle">
-          Add tasks, track progress, and keep momentum with a colorful checklist.
+          Create projects, assign tasks, and keep momentum with a colorful checklist.
         </p>
       </div>
       <div class="progress-card">
@@ -44,39 +44,19 @@
 
     <main>
       <section class="card create">
-        <h2>Create a task</h2>
-        <form id="taskForm">
+        <h2>Create a project</h2>
+        <form id="projectForm">
           <div class="row">
             <label>
-              Title
-              <input id="titleInput" type="text" placeholder="Finish report" required />
-            </label>
-            <label>
-              Priority
-              <select id="priorityInput">
-                <option value="low">Low</option>
-                <option value="medium" selected>Medium</option>
-                <option value="high">High</option>
-              </select>
+              Project name
+              <input id="projectNameInput" type="text" placeholder="Website refresh" required />
             </label>
           </div>
           <label>
-            Notes
-            <textarea id="notesInput" placeholder="Optional details"></textarea>
+            Description
+            <textarea id="projectNotesInput" placeholder="Optional details"></textarea>
           </label>
-          <div class="row">
-            <label>
-              Due date
-              <input id="dueDateInput" type="date" />
-            </label>
-          </div>
-          <div class="row">
-            <label>
-              Tags
-              <input id="tagsInput" type="text" placeholder="work, home" />
-            </label>
-          </div>
-          <button type="submit" class="primary">Add task</button>
+          <button type="submit" class="primary">Add project</button>
         </form>
       </section>
 
@@ -150,16 +130,64 @@
 
       <section class="card list">
         <div class="list-header">
-          <h2>Your tasks</h2>
+          <h2>Your projects</h2>
           <div class="list-actions">
-            <button id="clearCompleted" type="button" class="ghost">Clear completed</button>
-            <button id="clearAll" type="button" class="ghost danger">Clear all</button>
+            <button id="clearCompleted" type="button" class="ghost">Clear completed tasks</button>
+            <button id="clearAll" type="button" class="ghost danger">Delete all projects</button>
           </div>
         </div>
-        <ul id="taskList" class="task-list"></ul>
-        <p id="emptyState" class="empty">No tasks yet. Add one to start.</p>
+        <ul id="projectList" class="project-list"></ul>
+        <p id="emptyState" class="empty">No projects yet. Add one to start.</p>
       </section>
     </main>
+
+    <template id="projectTemplate">
+      <li class="project">
+        <div class="project-header">
+          <div>
+            <h3 class="project-title"></h3>
+            <p class="project-notes"></p>
+          </div>
+          <div class="project-actions">
+            <button type="button" class="ghost danger project-delete">Delete project</button>
+          </div>
+        </div>
+        <form class="project-task-form">
+          <div class="row">
+            <label>
+              Task title
+              <input
+                class="project-task-title"
+                type="text"
+                placeholder="New task"
+                required
+              />
+            </label>
+            <label>
+              Priority
+              <select class="project-task-priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Notes
+            <textarea class="project-task-notes" placeholder="Optional details"></textarea>
+          </label>
+          <div class="row">
+            <label>
+              Due date
+              <input class="project-task-due-date" type="date" />
+            </label>
+          </div>
+          <button type="submit" class="primary small">Add task</button>
+        </form>
+        <ul class="project-task-list"></ul>
+        <p class="project-empty empty">No tasks in this project yet.</p>
+      </li>
+    </template>
 
     <template id="taskTemplate">
       <li class="task">
@@ -168,7 +196,6 @@
           <div class="task-info">
             <div class="task-title"></div>
             <div class="task-meta"></div>
-            <div class="task-tags"></div>
           </div>
         </div>
         <div class="task-actions">
@@ -185,7 +212,6 @@
               <option value="medium">Medium</option>
               <option value="high">High</option>
             </select>
-            <input class="edit-tags" type="text" placeholder="comma tags" />
           </div>
           <div class="edit-actions">
             <button type="submit" class="primary small">Save</button>
